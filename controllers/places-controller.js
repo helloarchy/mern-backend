@@ -83,7 +83,35 @@ const createPlace = (req, res, next) => {
   res.json({place: createdPlace})
 }
 
+/**
+ * Update a place using the ID from param and values from body.
+ * @param res
+ * @param req
+ * @param next
+ */
+const updatePlace = (req, res, next) => {
+  const {title, description} = req.body
+  const placeId = req.params.pid
+
+  const updatedPlace = {...DUMMY_PLACES.find(p => p.id === placeId)} // Create a copy
+  const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId) // Get index
+
+  updatedPlace.title = title
+  updatedPlace.description = description
+
+  DUMMY_PLACES[placeIndex] = updatedPlace // Update with copy
+
+  res.status(200)
+  res.json({place: updatedPlace})
+}
+
+const deletePlace = (res, req, next) => {
+
+}
+
 // Export functions
 exports.getPlaceById = getPlaceById;
 exports.getPlaceByUserId = getPlaceByUserId;
 exports.createPlace = createPlace;
+exports.updatePlace = updatePlace;
+exports.deletePlace = deletePlace;
