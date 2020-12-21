@@ -1,10 +1,11 @@
 const {v4: uuid} = require('uuid');
+const HttpError = require('../models/http-error');
 
 /**
  * Places Middleware
  */
 
-const HttpError = require('../models/http-error');
+// TODO: Temporary until DB added
 let DUMMY_PLACES = [
   {
     'address': 'Tower Bridge Rd, London SE1 2UP',
@@ -32,6 +33,12 @@ let DUMMY_PLACES = [
   },
 ];
 
+
+/**
+ * Get place by PID
+ * @param req
+ * @param res
+ */
 const getPlaceById = (req, res) => {
   const placeId = req.params.pid;
   const place = DUMMY_PLACES.find((p) => p.id === placeId);
@@ -44,21 +51,37 @@ const getPlaceById = (req, res) => {
   res.json({place});
 }
 
-const getPlaceByUserId = (req, res, next) => {
-  const userId = req.params.uid;
-  const place = DUMMY_PLACES.find((p) => p.creator === userId);
 
-  if (!place) {
+/**
+ * GET all places for a user by their UID
+ * @param req
+ * @param res
+ * @param next
+ * @returns {*}
+ */
+const getPlacesByUserId = (req, res, next) => {
+  const userId = req.params.uid;
+
+  // Filter to get only places with matching UID
+  const places = DUMMY_PLACES.filter((p) => p.creator === userId);
+
+  if (!places || !places.length) {
     return next(
         new HttpError(`Could not find a place with user id ${userId}.`, 404),
     );
   }
 
-  console.log('GET /user/:uid Request in places');
-  res.json({place});
+  res.status(200)
+  res.json({places});
 }
 
-// POST has body, GET has params
+
+/**
+ * Create a place via POST body
+ * @param req
+ * @param res
+ * @param next
+ */
 const createPlace = (req, res, next) => {
   const {
     title,
@@ -83,8 +106,9 @@ const createPlace = (req, res, next) => {
   res.json({place: createdPlace})
 }
 
+
 /**
- * Update a place using the ID from param and values from body.
+ * Update a place using the PID from param and values from body.
  * @param res
  * @param req
  * @param next
@@ -105,6 +129,13 @@ const updatePlace = (req, res, next) => {
   res.json({place: updatedPlace})
 }
 
+
+/**
+ * Delete a place via PID
+ * @param req
+ * @param res
+ * @param next
+ */
 const deletePlace = (req, res, next) => {
   const placeId = req.params.pid
   DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId) // Return array excluding place
@@ -113,9 +144,10 @@ const deletePlace = (req, res, next) => {
   res.json({message: 'Place deleted'})
 }
 
+
 // Export functions
 exports.getPlaceById = getPlaceById;
-exports.getPlaceByUserId = getPlaceByUserId;
+exports.getPlacesByUserId = getPlacesByUserId;
 exports.createPlace = createPlace;
 exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
