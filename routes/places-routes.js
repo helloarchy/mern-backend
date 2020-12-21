@@ -1,3 +1,5 @@
+const HttpError = require('../models/http-error');
+
 const express = require('express');
 
 // eslint-disable-next-line new-cap
@@ -35,9 +37,7 @@ router.get('/:pid', (req, res, next) => {
   const place = DUMMY_PLACES.find((p) => p.id === placeId);
 
   if (!place) {
-      const error = new Error(`Could not find a place with id ${placeId}.`)
-      error.code = 404;
-      throw error;
+    throw new HttpError(`Could not find a place with id ${placeId}.`, 404);
   }
 
   console.log('GET /:pid Request in places');
@@ -49,9 +49,9 @@ router.get('/user/:uid', (req, res, next) => {
   const place = DUMMY_PLACES.find((p) => p.creator === userId);
 
   if (!place) {
-      const error = new Error(`Could not find a place with user id ${userId}.`)
-      error.code = 404;
-      return next(error);
+    return next(
+        new HttpError(`Could not find a place with user id ${userId}.`, 404),
+    );
   }
 
   console.log('GET /user/:uid Request in places');
