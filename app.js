@@ -1,11 +1,17 @@
 const express = require('express');
-const bodyParse = require('body-parser')
+const bodyParser = require('body-parser')
 
 const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')
 
 const app = express();
 
+/**
+ * Middleware loaded top-down!
+ * Parse JSON before routing requests
+ * Then next, next, next to use following middleware
+ */
+app.use(bodyParser.json())
 app.use('/api/places', placesRoutes)
 app.use('/api/users', usersRoutes)
 

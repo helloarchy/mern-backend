@@ -1,3 +1,5 @@
+const {v4: uuid} = require('uuid');
+
 /**
  * Places Middleware
  */
@@ -56,6 +58,32 @@ const getPlaceByUserId = (req, res, next) => {
   res.json({place});
 }
 
+// POST has body, GET has params
+const createPlace = (req, res, next) => {
+  const {
+    title,
+    description,
+    coordinates,
+    address,
+    creator,
+  } = req.body; // Extracted from Body Parser TODO: Validate!
+
+  const createdPlace = {
+    id: uuid(),
+    title,
+    description,
+    location: coordinates, // Lat, Long...
+    address,
+    creator
+  };
+
+  DUMMY_PLACES.push(createdPlace);
+
+  res.status(201); // Successfully created
+  res.json({place: createdPlace})
+}
+
 // Export functions
 exports.getPlaceById = getPlaceById;
 exports.getPlaceByUserId = getPlaceByUserId;
+exports.createPlace = createPlace;
