@@ -1,10 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
 
 const placesRoutes = require('./routes/places-routes')
 const usersRoutes = require('./routes/users-routes')
 
 const HttpError = require('./models/http-error')
+const {getConfig} = require('./config/config');
 
 /**
  * Middleware loaded top-down!
@@ -29,4 +31,22 @@ app.use((err, req,res,next) => {
   res.json({message: err.message || 'An unknown error occurred.' });
 });
 
-app.listen(5000);
+// Connect to DB, if OK, run server, otherwise error
+const config = getConfig()
+const connectionString =
+    "mongodb+srv://" +
+    encodeURIComponent(config.dbUserName) +
+    ":" +
+    encodeURIComponent(config.dbPassword) +
+    "@cluster0.ybxfd.mongodb.net/" +
+    config.dbName +
+    "?retryWrites=true&w=majority"
+
+mongoose
+  .connect(connectionString)
+  .then(() => {
+  app.listen(5000);
+})
+  .catch(err => {
+  console.log(err);
+})
