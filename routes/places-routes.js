@@ -1,4 +1,5 @@
 const express = require('express');
+const {check} = require('express-validator');
 
 const {
   getPlaceById,
@@ -16,7 +17,16 @@ router.get('/:pid', getPlaceById);
 router.get('/user/:uid', getPlacesByUserId);
 
 // POST
-router.post('/', createPlace);
+router.post('/', [
+  // TODO: Coordinates ignored
+  check('title').not().isEmpty(),
+  check('description').isLength({
+    min: 5,
+    max: 100,
+  }),
+  check('address').not().isEmpty(),
+  check('creator').not().isEmpty(),
+], createPlace);
 
 // PATCH
 router.patch('/:pid', updatePlace);

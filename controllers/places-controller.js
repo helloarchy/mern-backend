@@ -1,5 +1,6 @@
 const {v4: uuid} = require('uuid');
 const HttpError = require('../models/http-error');
+const { validationResult } = require('express-validator')
 
 /**
  * Places Controller Middleware
@@ -86,6 +87,11 @@ const getPlacesByUserId = (req, res, next) => {
  * @param next
  */
 const createPlace = (req, res, next) => {
+  const errors = validationResult(req) // Get the validation errors
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    throw new HttpError('Invalid input', 422) // Invalid user input
+  }
   const {
     title,
     description,
