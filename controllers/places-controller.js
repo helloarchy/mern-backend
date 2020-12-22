@@ -2,7 +2,10 @@ const {v4: uuid} = require('uuid');
 const HttpError = require('../models/http-error');
 
 /**
- * Places Middleware
+ * Places Controller Middleware
+ * ---
+ * Handle all logic and resolve places requests and responses, providing
+ * functions for places-routes.
  */
 
 // TODO: Temporary until DB added

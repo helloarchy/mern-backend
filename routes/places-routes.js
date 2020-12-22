@@ -1,10 +1,10 @@
 const express = require('express');
-const placeControllers = require('../controllers/places-controller');
 
 const {
   getPlaceById,
   getPlacesByUserId,
   createPlace,
+  updatePlace,
   deletePlace,
 } = require('../controllers/places-controller');
 
@@ -19,7 +19,7 @@ router.get('/user/:uid', getPlacesByUserId);
 router.post('/', createPlace);
 
 // PATCH
-router.patch('/:pid', placeControllers.updatePlace);
+router.patch('/:pid', updatePlace);
 
 // DELETE
 router.delete('/:pid', deletePlace);
