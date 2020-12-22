@@ -1,6 +1,8 @@
 const {v4: uuid} = require('uuid');
+const {validationResult} = require('express-validator');
+
 const HttpError = require('../models/http-error');
-const { validationResult } = require('express-validator')
+const getCoordsForAddress = require('../util/location');
 
 /**
  * Places Controller Middleware
@@ -37,7 +39,6 @@ let DUMMY_PLACES = [
   },
 ];
 
-
 /**
  * Get place by PID
  * @param req
@@ -53,8 +54,7 @@ const getPlaceById = (req, res) => {
 
   console.log('GET /:pid Request in places');
   res.json({place});
-}
-
+};
 
 /**
  * GET all places for a user by their UID
@@ -75,10 +75,9 @@ const getPlacesByUserId = (req, res, next) => {
     );
   }
 
-  res.status(200)
+  res.status(200);
   res.json({places});
-}
-
+};
 
 /**
  * Create a place via POST body
@@ -86,19 +85,27 @@ const getPlacesByUserId = (req, res, next) => {
  * @param res
  * @param next
  */
-const createPlace = (req, res, next) => {
-  const errors = validationResult(req) // Get the validation errors
+const createPlace = async (req, res, next) => {
+  // Get the validation errors
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    throw new HttpError('Invalid input', 422) // Invalid user input
+    return next(new HttpError('Invalid input', 422)); // Invalid user input (throw doesn't work in async)
   }
+
   const {
     title,
     description,
-    coordinates,
     address,
     creator,
   } = req.body; // Extracted from Body Parser TODO: Validate!
+
+  let coordinates;
+  try {
+    coordinates = await getCoordsForAddress(address);
+  } catch (error) {
+    return next(error); // Stop further execution
+  }
 
   const createdPlace = {
     id: uuid(),
@@ -106,15 +113,14 @@ const createPlace = (req, res, next) => {
     description,
     location: coordinates, // Lat, Long...
     address,
-    creator
+    creator,
   };
 
   DUMMY_PLACES.push(createdPlace);
 
   res.status(201); // Successfully created
-  res.json({place: createdPlace})
-}
-
+  res.json({place: createdPlace});
+};
 
 /**
  * Update a place using the PID from param and values from body.
@@ -123,21 +129,27 @@ const createPlace = (req, res, next) => {
  * @param next
  */
 const updatePlace = (req, res, next) => {
-  const {title, description} = req.body
-  const placeId = req.params.pid
+  // Get the validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    throw new HttpError('Invalid input', 422); // Invalid input
+  }
 
-  const updatedPlace = {...DUMMY_PLACES.find(p => p.id === placeId)} // Create a copy
-  const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId) // Get index
+  const {title, description} = req.body;
+  const placeId = req.params.pid;
 
-  updatedPlace.title = title
-  updatedPlace.description = description
+  const updatedPlace = {...DUMMY_PLACES.find(p => p.id === placeId)}; // Create a copy
+  const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId); // Get index
 
-  DUMMY_PLACES[placeIndex] = updatedPlace // Update with copy
+  updatedPlace.title = title;
+  updatedPlace.description = description;
 
-  res.status(200)
-  res.json({place: updatedPlace})
-}
+  DUMMY_PLACES[placeIndex] = updatedPlace; // Update with copy
 
+  res.status(200);
+  res.json({place: updatedPlace});
+};
 
 /**
  * Delete a place via PID
@@ -146,13 +158,18 @@ const updatePlace = (req, res, next) => {
  * @param next
  */
 const deletePlace = (req, res, next) => {
-  const placeId = req.params.pid
-  DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId) // Return array excluding place
+  const placeId = req.params.pid;
 
-  res.status(200)
-  res.json({message: 'Place deleted'})
-}
+  // Check for place before deleting
+  if (!DUMMY_PLACES.find(p => p.id === placeId)) {
+    throw new HttpError('Place not found', 404);
+  }
 
+  DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId); // Return array excluding place
+
+  res.status(200);
+  res.json({message: 'Place deleted'});
+};
 
 // Export functions
 exports.getPlaceById = getPlaceById;

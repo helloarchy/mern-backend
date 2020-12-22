@@ -1,5 +1,6 @@
 const {v4: uuid} = require('uuid');
 const HttpError = require('../models/http-error');
+const {validationResult} = require('express-validator')
 
 /**
  * Users Controller Middleware
@@ -53,6 +54,13 @@ const getUser = (req, res) => {
  * @param res
  */
 const signup = (req, res, next) => {
+  // Get the validation errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    throw new HttpError('Invalid input', 422); // Invalid input
+  }
+
   const {
     email,
     name,
