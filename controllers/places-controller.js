@@ -3,6 +3,7 @@ const {validationResult} = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const getCoordsForAddress = require('../util/location');
+const Place = require('../models/place');
 
 /**
  * Places Controller Middleware
@@ -107,16 +108,22 @@ const createPlace = async (req, res, next) => {
     return next(error); // Stop further execution
   }
 
-  const createdPlace = {
-    id: uuid(),
-    title,
-    description,
-    location: coordinates, // Lat, Long...
+  // Using Mongoose schema template
+  const createdPlace = new Place({
     address,
     creator,
-  };
+    description,
+    image: 'https://www.swedishnomad.com/wp-content/images/2020/03/Tower-Bridge.jpg',
+    location: coordinates, // Lat, Long...
+    title,
+  });
 
-  DUMMY_PLACES.push(createdPlace);
+  try {
+    await createdPlace.save(); // Does everything to write to db...
+  } catch (err) {
+    const error = new HttpError('Failed to create place', 500);
+    return next(error);
+  }
 
   res.status(201); // Successfully created
   res.json({place: createdPlace});

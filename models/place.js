@@ -4,35 +4,35 @@ const Schema = mongoose.Schema;
 
 const placeSchema = new Schema({
   // Blueprint for a place
-  title: {
+  address: {
     type: String,
-    required: true
+    required: true,
+  },
+  creator: {
+    type: String,
+    required: true,
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   image: { // href
     type: String,
-    required: true
-  },
-  address: {
-    type: String,
-    required: true
+    required: true,
   },
   location: {
     lat: {
       type: String,
-      required: true
+      required: true,
     },
     lng: {
       type: String,
-      required: true
+      required: true,
     },
   },
-  creator: {
+  title: {
     type: String,
-    required: true
+    required: true,
   },
 });
 
