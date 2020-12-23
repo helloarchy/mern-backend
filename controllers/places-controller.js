@@ -45,16 +45,25 @@ let DUMMY_PLACES = [
  * @param req
  * @param res
  */
-const getPlaceById = (req, res) => {
+const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
-  const place = DUMMY_PLACES.find((p) => p.id === placeId);
+
+  let place;
+  try {
+    place = await Place.findById(placeId);
+  } catch (e) {
+    return next(new HttpError('Invalid input', 500));
+  }
 
   if (!place) {
-    throw new HttpError(`Could not find a place with id ${placeId}.`, 404);
+    return next(
+        new HttpError(`Could not find a place with id ${placeId}.`, 404));
   }
 
   console.log('GET /:pid Request in places');
-  res.json({place});
+  res.json({
+    place: place.toObject({getters: true}),
+  });
 };
 
 /**
@@ -126,16 +135,17 @@ const createPlace = async (req, res, next) => {
   }
 
   res.status(201); // Successfully created
-  res.json({place: createdPlace});
+  res.json({
+    place: createdPlace.toObject({getters: true}),
+  });
 };
 
 /**
  * Update a place using the PID from param and values from body.
  * @param res
  * @param req
- * @param next
  */
-const updatePlace = (req, res, next) => {
+const updatePlace = (req, res) => {
   // Get the validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -162,9 +172,8 @@ const updatePlace = (req, res, next) => {
  * Delete a place via PID
  * @param req
  * @param res
- * @param next
  */
-const deletePlace = (req, res, next) => {
+const deletePlace = (req, res) => {
   const placeId = req.params.pid;
 
   // Check for place before deleting
