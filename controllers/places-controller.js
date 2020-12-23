@@ -154,7 +154,7 @@ const createPlace = async (req, res, next) => {
  * @param res
  * @param req
  */
-const updatePlace = (req, res) => {
+const updatePlace = async (req, res, next) => {
   // Get the validation errors
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -165,16 +165,25 @@ const updatePlace = (req, res) => {
   const {title, description} = req.body;
   const placeId = req.params.pid;
 
-  const updatedPlace = {...DUMMY_PLACES.find(p => p.id === placeId)}; // Create a copy
-  const placeIndex = DUMMY_PLACES.findIndex(p => p.id === placeId); // Get index
+  let place;
+  try {
+    place = await Place.findById(placeId);
+  } catch (e) {
+    return next(new HttpError('Invalid input', 500));
+  }
 
-  updatedPlace.title = title;
-  updatedPlace.description = description;
+  place.title = title;
+  place.description = description;
 
-  DUMMY_PLACES[placeIndex] = updatedPlace; // Update with copy
+  try {
+    await place.save(); // Update the place in db
+  } catch (err) {
+    const error = new HttpError('Failed to create place', 500);
+    return next(error);
+  }
 
   res.status(200);
-  res.json({place: updatedPlace});
+  res.json({place: place.toObject({getters: true})});
 };
 
 /**
