@@ -73,11 +73,16 @@ const getPlaceById = async (req, res, next) => {
  * @param next
  * @returns {*}
  */
-const getPlacesByUserId = (req, res, next) => {
+const getPlacesByUserId = async (req, res, next) => {
   const userId = req.params.uid;
 
   // Filter to get only places with matching UID
-  const places = DUMMY_PLACES.filter((p) => p.creator === userId);
+  let places;
+  try {
+    places = await Place.find({creator: userId});
+  } catch (e) {
+    return next(new HttpError('Invalid input', 500));
+  }
 
   if (!places || !places.length) {
     return next(
@@ -85,8 +90,12 @@ const getPlacesByUserId = (req, res, next) => {
     );
   }
 
+  const updated = places.map(p => p.toObject({getters: true}));
+
   res.status(200);
-  res.json({places});
+  res.json({
+    places: updated,
+  });
 };
 
 /**
