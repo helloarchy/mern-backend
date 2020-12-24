@@ -1,28 +1,12 @@
-const {v4: uuid} = require('uuid');
-const HttpError = require('../models/http-error');
 const {validationResult} = require('express-validator');
+
+const HttpError = require('../models/http-error');
 const User = require('../models/user');
 
 /**
  * Users Controller Middleware
  *
  */
-
-// TODO: Use database instead...
-const DUMMY_USERS = [
-  {
-    email: 'test1@test.com',
-    id: 'u1',
-    name: 'Alice',
-    password: 'Password123!',
-  },
-  {
-    email: 'test2@test.com',
-    id: 'u2',
-    name: 'Bob',
-    password: 'Password123!',
-  },
-];
 
 /**
  * Get all users
@@ -57,9 +41,11 @@ const getUser = async (req, res, next) => {
   const userId = req.params.uid;
   let user;
   try {
-    user = await User.find({id: userId});
+    user = await User.findById(userId);
   } catch (e) {
-    return next(new HttpError('Error getting user by id', 500));
+    return next(
+        new HttpError('Error getting user by id, please try again later', 500),
+    );
   }
 
   res.status(200);
@@ -79,7 +65,9 @@ const signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    return next(new HttpError('Invalid input', 422)); // Invalid input
+    return next(
+        new HttpError('Invalid input', 422),
+    ); // Invalid input
   }
 
   const {
@@ -93,12 +81,14 @@ const signup = async (req, res, next) => {
   try {
     existingUser = await User.findOne({email: email}); // Return on first find
   } catch (e) {
-    return next(new HttpError('Error check user email', 500));
+    return next(
+        new HttpError('Error check user email', 500),
+    );
   }
 
-  if (existingUser) {
-    return next(new HttpError('Email address taken', 422)); // Invalid user input
-  }
+  if (existingUser) return next(
+      new HttpError('Email address taken', 422),
+  ); // Invalid user input
 
   const createdUser = new User({
     email,
@@ -111,7 +101,9 @@ const signup = async (req, res, next) => {
   try {
     await createdUser.save();
   } catch (err) {
-    return next(new HttpError('Sign up failed, please try again later', 500));
+    return next(
+        new HttpError('Sign up failed, please try again later', 500),
+    );
   }
 
   res.status(201); // Created
@@ -137,12 +129,16 @@ const login = async (req, res, next) => {
   try {
     identifiedUser = await User.findOne({email: email}); // Return on first find
   } catch (e) {
-    return next(new HttpError('Error logging in, please try again later', 500));
+    return next(
+        new HttpError('Error logging in, please try again later', 500),
+    );
   }
 
   // Check password
   if (!identifiedUser || identifiedUser.password !== password) {
-    return next(new HttpError('Invalid credentials', 401)); // Unauthorised
+    return next(
+        new HttpError('Invalid credentials', 401), // Unauthorised
+    );
   }
 
   res.status(200);

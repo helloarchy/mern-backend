@@ -160,7 +160,7 @@ const createPlace = async (req, res, next) => {
     await createdPlace.save({session: session});
     user.places.push(createdPlace); // Mongoose push (very clever!)
     await user.save({session: session});
-    await session.commitTransaction() // Changes finally saved in db
+    await session.commitTransaction(); // Changes finally saved in db
   } catch (err) {
     const error = new HttpError('Failed to create place', 500);
     return next(error);
@@ -221,10 +221,30 @@ const deletePlace = async (req, res, next) => {
   // Check for place before deleting
   let place;
   try {
-    place = await Place.findById(placeId);
-    await place.remove(); // Delete the place
+    place = await Place.findById(placeId).populate('creator'); // User relation
   } catch (e) {
     return next(new HttpError('Invalid input', 500));
+  }
+
+  // Check place ID exists
+  if (!place) {
+    return next(
+        new HttpError(`Failed to find place with id ${placeId}`, 404),
+    );
+  }
+
+  try {
+    await place.remove(); // Delete the place
+    // Use session to track transaction for multiple operations and allow us to undo if fail
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    await place.remove({session: session});
+    place.creator.places.pull(place); // Mongoose pull (very clever!)
+    await place.creator.save({session: session});
+    await session.commitTransaction(); // Changes finally saved in db
+  } catch (e) {
+    return next(
+        new HttpError('Failed deleting place, please try again later', 500));
   }
 
   res.status(200);
