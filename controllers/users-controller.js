@@ -37,7 +37,7 @@ const getUsers = async (req, res, next) => {
     users = await User.find({}, '-password');
   } catch (e) {
     return next(
-        new HttpError('Failed to get users, please try again later', 500)
+        new HttpError('Failed to get users, please try again later', 500),
     );
   }
 
@@ -86,7 +86,6 @@ const signup = async (req, res, next) => {
     email,
     name,
     password,
-    places,
   } = req.body;
 
   // Enforce unique email
@@ -106,7 +105,7 @@ const signup = async (req, res, next) => {
     image: 'https://www.dailymoss.com/wp-content/uploads/2019/08/funny-profile-pic59.jpg',
     name,
     password,
-    places,
+    places: [],
   });
 
   try {
