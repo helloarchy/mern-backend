@@ -78,20 +78,21 @@ const getPlacesByUserId = async (req, res, next) => {
   const userId = req.params.uid;
 
   // Filter to get only places with matching UID
-  let places;
+  let userWithPlaces;
   try {
-    places = await Place.find({creator: userId});
+    userWithPlaces = await User.findById(userId).populate('places');
   } catch (e) {
-    return next(new HttpError('Invalid input', 500));
+    return next(
+        new HttpError('Failed to fetch places, please try again later', 500));
   }
 
-  if (!places || !places.length) {
+  if (!userWithPlaces || !userWithPlaces.places.length) {
     return next(
         new HttpError(`Could not find a place with user id ${userId}.`, 404),
     );
   }
 
-  const updated = places.map(p => p.toObject({getters: true}));
+  const updated = userWithPlaces.places.map(p => p.toObject({getters: true}));
 
   res.status(200);
   res.json({
