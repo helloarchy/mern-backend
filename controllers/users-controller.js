@@ -1,6 +1,7 @@
 const {v4: uuid} = require('uuid');
 const HttpError = require('../models/http-error');
 const {validationResult} = require('express-validator')
+const User = require('../models/user')
 
 /**
  * Users Controller Middleware
@@ -27,11 +28,19 @@ const DUMMY_USERS = [
  * Get all users
  * @param req
  * @param res
+ * @param next
  */
-const getUsers = (req, res) => {
+const getUsers = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find({});
+  } catch (e) {
+    return next(new HttpError('Error getting users', 500));
+  }
+
   res.status(200);
   res.json({
-    users: DUMMY_USERS,
+    users: users.map(u => u.toObject({getters: true})),
   });
 };
 
@@ -39,19 +48,28 @@ const getUsers = (req, res) => {
  * Get a user by their UID
  * @param req
  * @param res
+ * @param next
  */
-const getUser = (req, res) => {
+const getUser = async (req, res, next) => {
   const userId = req.params.uid;
-  const user = DUMMY_USERS.find((u) => u.id === userId);
+  let user;
+  try {
+    user = await User.find({id: userId});
+  } catch (e) {
+    return next(new HttpError('Error getting user by id', 500));
+  }
 
   res.status(200);
-  res.json({user});
+  res.json({
+    user: user.toObject({getters: true})
+  });
 };
 
 /**
  * Register a user using request body values
  * @param req
  * @param res
+ * @param next
  */
 const signup = (req, res, next) => {
   // Get the validation errors
