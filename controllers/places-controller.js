@@ -1,9 +1,10 @@
-const {v4: uuid} = require('uuid');
 const {validationResult} = require('express-validator');
+const mongoose = require('mongoose');
 
 const HttpError = require('../models/http-error');
 const getCoordsForAddress = require('../util/location');
 const Place = require('../models/place');
+const User = require('../models/user');
 
 /**
  * Places Controller Middleware
@@ -116,7 +117,7 @@ const createPlace = async (req, res, next) => {
     title,
     description,
     address,
-    creator,
+    creator, // User ID
   } = req.body; // Extracted from Body Parser TODO: Validate!
 
   let coordinates;
@@ -124,6 +125,22 @@ const createPlace = async (req, res, next) => {
     coordinates = await getCoordsForAddress(address);
   } catch (error) {
     return next(error); // Stop further execution
+  }
+
+  // Check User ID exists
+  let user;
+  try {
+    user = await User.findById(creator);
+  } catch (err) {
+    return next(
+        new HttpError('Failed creating place, please try again later', 500),
+    );
+  }
+
+  if (!user) {
+    return next(
+        new HttpError('User ID does not exist', 422),
+    );
   }
 
   // Using Mongoose schema template
@@ -137,7 +154,13 @@ const createPlace = async (req, res, next) => {
   });
 
   try {
-    await createdPlace.save(); // Does everything to write to db...
+    // Use session to track transaction for multiple operations and allow us to undo if fail
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    await createdPlace.save({session: session});
+    user.places.push(createdPlace); // Mongoose push (very clever!)
+    await user.save({session: session});
+    await session.commitTransaction() // Changes finally saved in db
   } catch (err) {
     const error = new HttpError('Failed to create place', 500);
     return next(error);
