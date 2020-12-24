@@ -33,9 +33,12 @@ const DUMMY_USERS = [
 const getUsers = async (req, res, next) => {
   let users;
   try {
-    users = await User.find({});
+    // Get all but the passwords
+    users = await User.find({}, '-password');
   } catch (e) {
-    return next(new HttpError('Error getting users', 500));
+    return next(
+        new HttpError('Failed to get users, please try again later', 500)
+    );
   }
 
   res.status(200);
