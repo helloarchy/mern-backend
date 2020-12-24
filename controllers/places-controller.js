@@ -190,16 +190,19 @@ const updatePlace = async (req, res, next) => {
  * Delete a place via PID
  * @param req
  * @param res
+ * @param next
  */
-const deletePlace = (req, res) => {
+const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
 
   // Check for place before deleting
-  if (!DUMMY_PLACES.find(p => p.id === placeId)) {
-    throw new HttpError('Place not found', 404);
+  let place;
+  try {
+    place = await Place.findById(placeId);
+    await place.remove(); // Delete the place
+  } catch (e) {
+    return next(new HttpError('Invalid input', 500));
   }
-
-  DUMMY_PLACES = DUMMY_PLACES.filter(p => p.id !== placeId); // Return array excluding place
 
   res.status(200);
   res.json({message: 'Place deleted'});
