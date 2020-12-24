@@ -13,38 +13,11 @@ const User = require('../models/user');
  * functions for places-routes.
  */
 
-// TODO: Temporary until DB added
-let DUMMY_PLACES = [
-  {
-    'address': 'Tower Bridge Rd, London SE1 2UP',
-    'creator': 'u1',
-    'description': 'A nice tower description',
-    'id': 'p1',
-    'imageUrl': 'https://www.swedishnomad.com/wp-content/images/2020/03/Tower-Bridge.jpg',
-    'location': {
-      'lat': 51.505455,
-      'lng': -0.075356,
-    },
-    'title': 'Tower Bridge',
-  },
-  {
-    'address': 'Tower Bridge Rd, London SE1 2UP',
-    'creator': 'u2',
-    'description': 'An even nicer tower description',
-    'id': 'p2',
-    'imageUrl': 'https://www.swedishnomad.com/wp-content/images/2020/03/Tower-Bridge.jpg',
-    'location': {
-      'lat': 51.505455,
-      'lng': -0.075356,
-    },
-    'title': 'Tower Bridge',
-  },
-];
-
 /**
  * Get place by PID
  * @param req
  * @param res
+ * @param next
  */
 const getPlaceById = async (req, res, next) => {
   const placeId = req.params.pid;
@@ -119,7 +92,7 @@ const createPlace = async (req, res, next) => {
     description,
     address,
     creator, // User ID
-  } = req.body; // Extracted from Body Parser TODO: Validate!
+  } = req.body;
 
   let coordinates;
   try {
@@ -177,6 +150,7 @@ const createPlace = async (req, res, next) => {
  * Update a place using the PID from param and values from body.
  * @param res
  * @param req
+ * @param next
  */
 const updatePlace = async (req, res, next) => {
   // Get the validation errors

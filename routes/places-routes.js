@@ -18,7 +18,6 @@ router.get('/user/:uid', getPlacesByUserId);
 
 // POST
 router.post('/', [
-  // TODO: Coordinates ignored
   check('title').not().isEmpty(),
   check('description').isLength({
     min: 5
