@@ -34,7 +34,6 @@ const getPlaceById = async (req, res, next) => {
         new HttpError(`Could not find a place with id ${placeId}.`, 404));
   }
 
-  console.log('GET /:pid Request in places');
   res.json({
     place: place.toObject({getters: true}),
   });
@@ -84,7 +83,8 @@ const createPlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
-    return next(new HttpError('Invalid input', 422)); // Invalid user input (throw doesn't work in async)
+    // Invalid user input (throw doesn't work in async)
+    return next(new HttpError('Invalid input', 422));
   }
 
   const {

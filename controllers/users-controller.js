@@ -66,8 +66,8 @@ const signup = async (req, res, next) => {
   if (!errors.isEmpty()) {
     console.log(errors);
     return next(
-        new HttpError('Invalid input', 422),
-    ); // Invalid input
+        new HttpError('Invalid input', 422), // Invalid input
+    );
   }
 
   const {
