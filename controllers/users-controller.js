@@ -87,7 +87,7 @@ const signup = async (req, res, next) => {
   }
 
   if (existingUser) return next(
-      new HttpError('Email address taken', 422),
+      new HttpError('User already exists, please log in instead', 422),
   ); // Invalid user input
 
   const createdUser = new User({
